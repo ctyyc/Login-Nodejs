@@ -1,10 +1,10 @@
 const express = require('express')
 const app = express()
-const port = 5000
+
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-const config = require('./config/key');
 
+const config = require('./config/key');
 const { User } = require("./models/User");
 const { auth } = require('./middleware/auth');
 
@@ -18,21 +18,26 @@ const mongoose = require('mongoose');
 mongoose.connect(config.mongoURI, {
   useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, useFindAndModify: false
 }).then(() => console.log("mongodb is connect..."))
-  .catch((err) => console.log(err))
+  .catch((err) => console.log(err));
 
-app.get('/', (req, res) => res.send('Hello World! Node.js!'))
+app.get('/', (req, res) => res.send('Hello World!'));
 
+
+
+// 회원가입
 app.post('/api/users/register', (req, res) => {
   const user = new User(req.body);
 
   user.save((err, userInfo) => {
-    if(err) return res.json({success: false, err})
+    if(err) return res.json({success: false, err});
     return res.status(200).json({
       success: true
-    })
-  })
-})
+    });
+  });
 
+});
+
+// 로그인
 app.post('/api/users/login', (req, res) => {
   // 이메일을 DB에서 확인
   User.findOne({email: req.body.email}, (err, user) => {
@@ -40,7 +45,7 @@ app.post('/api/users/login', (req, res) => {
       return res.json({
         loginSuccess: false,
         message: "Email does not exist."
-      })
+      });
     }
 
     // 비밀번호 일치여부 확인
@@ -48,7 +53,7 @@ app.post('/api/users/login', (req, res) => {
       if(!isMatch) return res.json({
         loginSuccess: false, 
         message: "Passwords do not match."
-      })
+      });
 
       // 비밀번호가 일치하다면(로그인 성공), 토큰 생성
       user.generateToken((err, user) => {
@@ -58,15 +63,14 @@ app.post('/api/users/login', (req, res) => {
         res.cookie("x_auth", user.token).status(200).json({
           loginSuccess: true,
           userId: user._id
-        })
+        });
         
-      })
-    })
-  })
-})
+      });
+    });
+  });
+});
 
-
-
+// 권한관리
 app.get('/api/users/auth', auth, (req, res) => {
   // auth 인증을 마친 경우만 실행
   res.status(200).json({
@@ -78,19 +82,25 @@ app.get('/api/users/auth', auth, (req, res) => {
     lastname: req.user.lastname,
     role: req.user.role,
     image: req.user.image
-  })
-})
+  });
 
+});
+
+// 로그아웃
 app.get('/api/users/logout', auth, (req, res) => {
   User.findOneAndUpdate({_id: req.user._id}, {token: ""}, (err, user) => {
     if(err) return res.json({success: false, err});
     return res.status(200).send({
       success: true
-    })
-  })
+    });
+  });
 
-})
+});
+
+
+
+const port = 5000;
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)
-})
+});
