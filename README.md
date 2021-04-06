@@ -1,4 +1,4 @@
-# Login-Nodejs
+# Nodejs-login
 You can set up project as follows... 
 
 1. create dev.js file in config directory
